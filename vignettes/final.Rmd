@@ -1,0 +1,558 @@
+---
+title: "Final Report CTN-0094"
+author: "CTN-0094 Team"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+      toc: true
+      toc_depth: 4
+vignette: >
+  %\VignetteIndexEntry{Final Report CTN-0094}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+params:
+   randomizationOnly: TRUE
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r tidyverse}
+library(conflicted)
+conflict_prefer("filter", "dplyr", quiet = TRUE)
+conflict_prefer("lag", "dplyr", quiet = TRUE)
+#suppressPackageStartupMessages(library(tidyverse))
+library(dplyr)
+library(ggplot2)
+library(tibble)
+library(forcats)
+# suppress "`summarise()` has grouped output by " messages
+options(dplyr.summarise.inform = FALSE)  
+```
+
+```{r other-packages}
+library(ggthemes)  # for theme_few()
+library(table1)  # for table1()
+library(DiagrammeR)  # for grViz() 
+library(broom)  # for tidy()
+library(kableExtra)  # for add_header_above(), kable_styling()
+
+conflict_prefer("chisq.test", "stats", quiet = TRUE)
+conflict_prefer("fisher.test", "stats", quiet = TRUE)
+library(janitor) # for tabyl
+
+library(infer) # for chisq_test
+
+library(psych) # for phi
+```
+```{r make-functions}
+
+dropMissing <- function(data, thingy) {
+  data %>%  
+    filter({{thingy}} != "Missing/Not Answered") %>% 
+    filter({{thingy}} != "Refused/Missing") %>% 
+    filter({{thingy}} != "Missing/Not Answered/Not Administered") %>% 
+    mutate({{thingy}} := fct_drop({{thingy}}))
+}
+
+# Anna This function can go away because the binary variables are make factors in preprocessing
+
+
+# Convert 1/0 to Yes/No for Table 1
+makeYesNo <- function(thingy) {
+  factor(
+    case_when(
+      thingy == "Yes" ~ "Yes",
+      thingy == "No" ~ "No", 
+      TRUE ~ "Missing/Not Answered"
+    ),
+    levels = c("Yes", "No", "Missing/Not Answered")
+  )
+}
+
+# Convert 1/0 to Yes/No for Table 1
+makeYesNoASI <- function(thingy) {
+  factor(
+    case_when(
+      thingy == "Yes" ~ "Yes",
+      thingy == "No" ~ "No", 
+      TRUE ~ "Missing/Not Answered/Not Administered"
+    ),
+    levels = c("Yes", "No", "Missing/Not Answered/Not Administered")
+  )
+}
+
+makeRandomizedAnalysisSubset <- function(data) {
+  inner_join(
+    data, 
+    whoRandomized_id, 
+    by = "who"
+  ) 
+}
+
+makeChiSq <- function(table, variable) {
+  a_tibble <- dropMissing(
+    {{table}},
+    {{variable}}
+    ) %>% 
+    rename(variable := {{variable}})
+
+  infer::chisq_test(a_tibble, variable ~ project)
+}
+
+
+makeMosaic <- function(variable, table, title_lgl = FALSE) {
+  a_tibble <- dropMissing(
+    {{table}},
+    {{variable}}
+  )
+
+  a_table <- janitor::tabyl(a_tibble, {{variable}}, project) 
+  
+  a_mat <- a_table %>% 
+    select(-{{variable}}) %>% 
+    as.matrix(nrow = 2, ncol = 3)
+
+  rownames(a_mat) <- 
+    a_table %>% 
+    pull({{variable}}) %>% 
+    as.character()
+
+  if(title_lgl) {
+    plot_title <- colnames(a_table)[1]
+  } else {
+    plot_title <- NULL
+  }
+  
+  mosaicplot(
+    t(a_mat),
+    shade = TRUE,
+    main = plot_title
+  )
+  
+}
+
+# custom display for table1 function
+my_render_cont <- function(x) {
+  with(
+    stats.apply.rounding(stats.default(x), digits = 2),
+    c("", "Median (Q1 - Q3)" = sprintf("%s (%s - %s)", MEDIAN, Q1, Q3))
+  )
+}
+
+```
+
+
+```{r load-data}
+library(public.ctn0094data)
+
+# All data objects have the same name as their sources OTHER THAN "randomized"
+all_drugs    <- public.ctn0094data::all_drugs
+demograhics  <- public.ctn0094data::demographics
+everybody    <- public.ctn0094data::everybody
+first_survey <- public.ctn0094data::first_survey
+pain         <- public.ctn0094data::pain
+psychiatric  <- public.ctn0094data::psychiatric
+qol          <- public.ctn0094data::qol
+randomized   <- public.ctn0094data::randomization # different name
+rbs          <- public.ctn0094data::rbs
+rbs_iv       <- public.ctn0094data::rbs_iv
+tlfb         <- public.ctn0094data::tlfb
+uds_temp     <- public.ctn0094data::uds_temp
+withdrawal   <- public.ctn0094data::withdrawal
+
+visit <- 
+  public.ctn0094data::visit %>% 
+  select(who, when, visit, what)
+```
+
+```{r randomization-info}
+screened27 <- filter(everybody, project == 27)
+screened30 <- filter(everybody, project == 30)
+screened51 <- filter(everybody, project == 51)
+
+
+whoRandomized <- 
+  inner_join(everybody, randomized, by = "who") %>% 
+  filter(which == 1) 
+
+whoRandomized_id <- 
+  inner_join(everybody, randomized, by = "who") %>% 
+  filter(which == 1) %>% 
+  select(who)
+
+
+in27 <- filter(whoRandomized, project == "27")
+in30 <- filter(whoRandomized, project == "30")
+in51 <- filter(whoRandomized, project == "51")
+
+
+visits27 <- 
+  in27 %>% 
+  inner_join(visit, by = "who") %>% 
+  select(who, project, treatment, visit, what) %>% 
+  filter(visit != "BASELINE") %>% 
+  filter(what == "visit") %>%  # people came to the appointment
+  group_by(who, treatment) %>% 
+  summarize(visits = n())
+
+in30_2 <- 
+  inner_join(everybody, randomized, by = "who") %>% 
+  filter(which == 2) %>%  # second randomization
+  inner_join(visit, by = "who") %>% 
+  filter(project == "30") %>% 
+  filter(visit == "P2Wk1A" & what == "visit")
+
+hasDrugInfo <- all_drugs %>% 
+  select(who) %>% 
+  distinct()
+
+hasRandomization <- randomization %>% 
+  select(who) %>% 
+  distinct()  
+
+drugInfoWithoutRandomization <- anti_join(
+  hasDrugInfo, 
+  hasRandomization, 
+  by = "who"
+)
+
+hasDemographis <- demographics %>% 
+  select(who) %>% 
+  distinct
+
+demoInfoWithoutRandomization <- anti_join(
+  hasDemographis, 
+  hasRandomization, 
+  by = "who"
+)
+
+extraUsefulPeople <- intersect(
+  drugInfoWithoutRandomization, 
+  demoInfoWithoutRandomization
+)
+
+```
+
+```{r make-analysis}
+# add trial -- project variable
+analysis_demographics <- 
+  inner_join(
+    demographics, 
+    everybody, 
+    by = "who"
+  ) %>% 
+  mutate(
+    Sex = factor(
+      case_when(
+        is_male == "No" ~ "Female", 
+        is_male == "Yes" ~ "Male",
+        TRUE ~ "Refused/Missing"
+      ),
+      levels = c("Female", "Male", "Refused/Missing")
+    )
+  ) %>% 
+  mutate(
+    Race = recode_factor(race, "Refused/missing" = "Refused/Missing")
+  ) %>% 
+  mutate(
+    Ethnicity = factor(
+      case_when(
+        is_hispanic == "No" ~ "Not Hispanic",
+        is_hispanic == "Yes" ~ "Hispanic",
+        TRUE ~ "Refused/Missing"
+      )
+    )
+  ) %>% 
+  rename(Age = age) %>% 
+  rename(Education = education) %>% 
+  rename(Employment = job) %>% 
+  mutate(
+    `Usual Living Arragements` = factor(
+      case_when(
+        is_living_stable == "No" ~ "Not Stable", 
+        is_living_stable == "Yes" ~ "Stable",
+        TRUE ~ "Refused/Missing"
+      ),
+      levels = c("Stable", "Not Stable", "Refused/Missing")
+    )
+  ) %>% 
+  rename(`Relationship Status` = marital) %>% 
+  select(-c(is_male, race, is_living_stable))
+
+
+analysis_tlfb <- inner_join(
+  everybody, 
+  tlfb, 
+  by = "who"
+) 
+
+analysis_uds <- inner_join(
+  everybody, 
+  uds, 
+  by = "who"
+) 
+
+
+analysis_fagerstrom <- 
+  inner_join(
+    everybody, 
+    fagerstrom, 
+    by = "who"
+  )%>% 
+  mutate(
+    `Smoking Status` = factor(
+      case_when(
+        as.numeric(is_smoker) == 0 ~ "Nonsmoker", 
+        as.numeric(is_smoker) == 1 ~ "Smoker",
+        TRUE ~ "Refused/Missing"
+      ),
+      levels = c("Smoker", "Nonsmoker", "Refused/Missing")
+    )
+  ) %>%
+  #mutate(
+  #  `Cigarettes per Day` = 
+  #    factor(
+  #      case_when(
+  #        as.character(`Smoking Status`) == "Nonsmoker" ~ "N/A",
+  #        as.character(per_day) == "Missing" ~ "Refused/Missing",
+  #        as.character(per_day) == "" ~ "Refused/Missing",
+  #        TRUE ~ per_day
+  #      ),
+  #      levels = c("N/A", "10 OR LESS", "11-20", "21-30", "31 OR MORE")
+  #    )
+  #) %>%
+  mutate(`Cigarettes per Day`  = 2) %>% 
+  rename(`Fagerstrom Test for Nicotine Dependence` = ftnd)
+
+analysis_withdrawal <- 
+  inner_join(
+    everybody, 
+    withdrawal, 
+    by = "who"
+  ) %>% 
+  mutate(
+    Severity = factor(
+      case_when(
+        withdrawal == 0 ~ "None",
+        withdrawal == 1 ~ "Mild",
+        withdrawal == 2 ~ "Moderate",
+        withdrawal == 3 ~ "Severe",
+      ),
+      levels = c("None", "Mild", "Moderate", "Severe")
+    )
+  ) 
+
+analysis_withdrawal_prepost <- 
+  inner_join(
+    everybody, 
+    withdrawal_pre_post, 
+    by = "who"
+  ) %>% 
+  mutate(
+    what = factor(
+      case_when(
+        what == "post" ~ "Post",
+        what == "pre" ~ "Pre"
+      ),
+      levels = c("Pre", "Post")
+    )
+  ) %>% 
+  mutate(
+    Severity = factor(
+      case_when(
+        withdrawal == 0 ~ "None",
+        withdrawal == 1 ~ "Mild",
+        withdrawal == 2 ~ "Mod",
+        withdrawal == 3 ~ "Sev",
+      ),
+      levels = c("None", "Mild", "Mod", "Sev")
+    )
+  )  
+  
+# psychiatric <- psychiatric %>% 
+#   rename(has_schizophrenia = has_schizophrenia,
+#          schizophrenia = schizophrenia)
+
+analysis_psychiatric <-
+  inner_join(
+    everybody, 
+    psychiatric, 
+    by = "who"
+  ) %>%   
+  mutate(
+    across(
+      c(has_schizophrenia:has_epilepsy, has_opiates_dx:has_sedatives_dx),
+      makeYesNo
+    )
+  ) %>%
+  mutate(
+    across(c(depression, anxiety, schizophrenia), makeYesNoASI)
+  ) %>%
+  rename(
+    `History of Schiziphrenia` = has_schizophrenia,
+    `History of Major Depression` = has_major_dep,
+    `History of Bipolar Disorder` = has_bipolar,
+    `History of Anxiety/Panic Disorder` = has_anx_pan,
+    `History of Brain Damage` = has_brain_damage,
+    `History of Epilepsy` = has_epilepsy,
+    `ASI-Lite Depression` = depression,
+    `ASI-Lite Anxiety` = anxiety,
+    `ASI-Lite Schizophrenia` = schizophrenia, # fix spelling
+    `DSM Opiate Diagnosis` = has_opiates_dx,
+    `DSM Alcohol Diagnosis` = has_alcol_dx, # fix spelling
+    `DSM Amphetamine Diagnosis` = has_amphetamines_dx,
+    `DSM Cannabis Diagnosis` = has_cannabis_dx,
+    `DSM Cocaine Diagnosis` = has_cocaine_dx,
+    `DSM Sedatives Diagnosis` = has_sedatives_dx
+  )
+
+
+analysis_pain <-
+  inner_join(
+    everybody, 
+    pain, 
+    by = "who"
+  ) %>% 
+  mutate(
+    Pain = factor(
+      pain,
+      levels = c("No Pain", "Very mild to Moderate Pain", "Severe Pain")
+    )
+  ) %>% 
+  select(-pain)
+
+
+analysis_rbs <- inner_join(
+  everybody, 
+  rbs, 
+  by = "who"
+) 
+
+analysis_rbs_iv <- inner_join(
+  everybody, 
+  rbs_iv, 
+  by = "who"
+) 
+
+analysis_qol <- inner_join(
+  everybody, 
+  qol, 
+  by = "who"
+) 
+
+analysis_all_drugs <- inner_join(
+  all_drugs, 
+  everybody, 
+  by = "who"
+)
+
+analysis_uds_temp <-
+  inner_join(
+    uds_temp, 
+    everybody, 
+    by = "who"
+  ) %>% 
+  mutate(
+    `Temperature In Range`=
+      factor(
+        case_when(
+          was_temp_ok == 0 ~ "No",
+          was_temp_ok == 1 ~ "Yes"
+        )
+      )
+    )
+
+
+analysis_treatment <- inner_join(
+  everybody, 
+  treatment, 
+  by = "who"
+) 
+
+```
+
+```{r subset-to-randomized}
+if (params$randomizationOnly == TRUE) {
+  
+  analysis_all_drugs    <- makeRandomizedAnalysisSubset(analysis_all_drugs)
+  analysis_demographics <- makeRandomizedAnalysisSubset(analysis_demographics)
+  analysis_fagerstrom   <- makeRandomizedAnalysisSubset(analysis_fagerstrom)
+  analysis_pain         <- makeRandomizedAnalysisSubset(analysis_pain)
+  analysis_psychiatric  <- makeRandomizedAnalysisSubset(analysis_psychiatric)
+  analysis_qol          <- makeRandomizedAnalysisSubset(analysis_qol)
+  analysis_rbs          <- makeRandomizedAnalysisSubset(analysis_rbs)
+  analysis_rbs_iv       <- makeRandomizedAnalysisSubset(analysis_rbs_iv)
+  analysis_tlfb         <- makeRandomizedAnalysisSubset(analysis_tlfb)
+  analysis_treatment    <- makeRandomizedAnalysisSubset(analysis_treatment)  
+  analysis_uds_temp     <- makeRandomizedAnalysisSubset(analysis_uds_temp)
+  analysis_uds          <- makeRandomizedAnalysisSubset(analysis_uds)
+  analysis_withdrawal   <- makeRandomizedAnalysisSubset(analysis_withdrawal)
+
+  analysis_withdrawal_prepost <- makeRandomizedAnalysisSubset(
+    analysis_withdrawal_prepost
+  )
+  
+}
+```
+
+
+
+# Table 1 
+Harmonized demographics data from the three National Drug Treatment Clinical Trials Network (CTN) opioid use disorder treatment trials (CTN-0027, CTN-0030, CTN-0051, , N= `r nrow(analysis_demographics)`)
+
+```{r}
+analysis_demographics %>% 
+  select(-who) %>% 
+  mutate(Sex = fct_drop(Sex)) %>% 
+  mutate(Sex = fct_drop(Ethnicity)) %>% 
+  table1(
+    ~ Sex + Age + Ethnicity + Race + Education + `Relationship Status` + 
+      Employment + `Usual Living Arragements` | project,
+    data = .
+  )
+```
+
+# Table 2 
+Harmonized Urine Drug Screen (UDS) data from the three National Drug Treatment Clinical Trials Network (CTN) opioid use disorder treatment trials 
+
+```{r}
+analysis_all_drugs %>%
+  filter(source %in% c("UDS", "UDSAB")) %>% 
+  mutate(
+    what = fct_drop(what),
+    what = as.character(what)
+  ) %>% 
+  filter(! what %in% c("Alcohol", "Methadone")) %>% 
+  mutate(what = if_else(what == "Thc", "THC", what)) %>% 
+  mutate(what = if_else(what == "Mdma", "MDMA", what)) %>% 
+  rename(Substance = what) %>% 
+  table1(~  Substance | project, data = .)
+
+
+table1(~  `Temperature In Range` | project, data = analysis_uds_temp)
+```
+
+
+# Table 3
+Medical and Psychiatric Co-Morbidities in the three National Drug Treatment Clinical Trials Network (CTN) opioid use disorder treatment trials 
+
+```{r}
+analysis_psychiatric %>% 
+  select(project, starts_with(c("History", "DSM"))) %>% 
+  table1(~  . | project, data = .)
+```
+
+
+```{r}
+sessionInfo()
+```
