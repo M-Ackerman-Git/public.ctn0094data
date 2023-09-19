@@ -19,8 +19,6 @@
 #' | _Description:_ | Patient ID |
 #'
 #'  }
-#'
-#'   }
 #'   \item{**when**}{
 #'
 #' | _Type:_        | integer       |

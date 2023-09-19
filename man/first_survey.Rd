@@ -17,8 +17,6 @@ A tibble with 3,453 rows and
 
 
 }
-
-}
 \item{\strong{when}}{\tabular{ll}{
    \emph{Type:} \tab integer \cr
     \tab  \cr
