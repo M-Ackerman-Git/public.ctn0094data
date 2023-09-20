@@ -1,3 +1,7 @@
+# 1.0.4
+
+* Corrected the description of the fagerstrom table
+
 # 1.0.3
 
 * Fixed spelling errors

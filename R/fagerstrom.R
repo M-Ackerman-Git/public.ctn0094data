@@ -1,6 +1,6 @@
 #' Fagerstrom Test for Nicotine Dependence
 #'
-#' @description Information on the amount of smoking at baseline. See the vignette
+#' @description Information on the intensity of physical addiction to nicotine at baseline. See the vignette
 #'   [Harmonization Information](../doc/harmonization.html) for more details.
 #'
 #' @docType data

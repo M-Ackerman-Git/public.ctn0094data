@@ -1,7 +1,7 @@
 Package: public.ctn0094data
 Title: De-Identified Data from CTN-0094
-Version: 1.0.3
-Date: 2023-09-11
+Version: 1.0.4
+Date: 2023-09-20
 Authors@R: 
     c(
       person(
