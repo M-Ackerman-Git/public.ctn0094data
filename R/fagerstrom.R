@@ -34,7 +34,7 @@
 #' | _Type:_        | factor     |
 #' | -------------- | ---------- |
 #' |                |            |
-#' | _Description:_ | Cigarettes per day |
+#' | _Description:_ | Fagerstrom Test For Nicotine Dependence Score 0-10 |
 #' |                |            |
 #' | _Levels:_      |  `r levels(fagerstrom$ftnd)` |
 #'
@@ -44,7 +44,7 @@
 #' | _Type:_        | factor     |
 #' | -------------- | ---------- |
 #' |                |            |
-#' | _Description:_ | Fagerstrom Test For Nicotine Dependence Score 0-10 |
+#' | _Description:_ | Cigarettes per day |
 #' |                |            |
 #' | _Levels:_      | `r levels(fagerstrom$per_day)` |
 #'
