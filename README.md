@@ -27,7 +27,7 @@ We are currently submitting this package to CRAN. After it is accepted, you will
 # install.packages("public.ctn0094data")
 ```
 
-For now, you can use the [remotes](https://CRAN.R-project.org/package=remotes) pacakge to install this database directly from GitHub with:
+For now, you can use the [remotes](https://CRAN.R-project.org/package=remotes) package to install this database directly from GitHub with:
 ```r
 remotes::install_github("CTN-0094/public.ctn0094data")
 ```
