@@ -30,7 +30,7 @@ A tibble with 3,119 rows and
 \item{\strong{ftnd}}{\tabular{ll}{
    \emph{Type:} \tab factor \cr
     \tab  \cr
-   \emph{Description:} \tab Cigarettes per day \cr
+   \emph{Description:} \tab Fagerstrom Test For Nicotine Dependence Score 0-10 \cr
     \tab  \cr
    \emph{Levels:} \tab 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 \cr
 }
@@ -40,7 +40,7 @@ A tibble with 3,119 rows and
 \item{\strong{per_day}}{\tabular{ll}{
    \emph{Type:} \tab factor \cr
     \tab  \cr
-   \emph{Description:} \tab Fagerstrom Test For Nicotine Dependence Score 0-10 \cr
+   \emph{Description:} \tab Cigarettes per day \cr
     \tab  \cr
    \emph{Levels:} \tab , 10 OR LESS, 11-20, 21-30, 31 OR MORE \cr
 }
@@ -53,7 +53,7 @@ A tibble with 3,119 rows and
 fagerstrom
 }
 \description{
-Information on the amount of smoking at baseline. See the vignette
+Information on the intensity of physical addiction to nicotine at baseline. See the vignette
 \href{../doc/harmonization.html}{Harmonization Information} for more details.
 }
 \keyword{datasets}

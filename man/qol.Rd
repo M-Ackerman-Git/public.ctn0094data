@@ -34,6 +34,7 @@ data(qol)
 }
 \description{
 This is quality of life data from the PhenX Quality of Life
-survey. This was used by ctn_0051.
+survey (see \url{https://www.phenxtoolkit.org/protocols/view/221302}).
+This was used by the Clinical Trials Network protocol CTN-0051.
 }
 \keyword{datasets}
