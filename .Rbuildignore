@@ -2,4 +2,7 @@
 ^\.Rproj\.user$
 cran-comments.md$
 ^docs/*$
-^_pkgdown.yml$
+^docs$
+^_pkgdown\.yml$
+^pkgdown$
+^\.github$
