@@ -8,7 +8,7 @@ title: public.ctn0094data
 
 # Introduction to public.ctn0094data: De-Identified Data from the CTN-0094 Protocol
 
-These are harmonized datasets in a Fifth Normal Form relational database produced as part of the Clinical Trials Network (CTN) protocol number 0094. This is a US National Institute of Drug Abuse (NIDA) funded project; to learn more go to <https://ctnlibrary.org/protocol/ctn0094/>. The datasets which have data harmonized are from:
+These are harmonized/normalized data sets produced as part of the Clinical Trials Network (CTN) protocol number 0094. The data describe the experiences of care seeking individuals suffering from opioid use disorder (OUD). This is a US National Institute of Drug Abuse (NIDA) funded project; to learn more go to <https://ctnlibrary.org/protocol/ctn0094/>. The datasets which have data harmonized are from:
 
 - CTN-0027 (<https://ctnlibrary.org/protocol/ctn0027/>),
 - CTN-0030 (<https://ctnlibrary.org/protocol/ctn0030/>), and
@@ -35,7 +35,7 @@ remotes::install_github("CTN-0094/public.ctn0094data")
 ## Citing this Package
 We expect the paper corresponding to this package will be published shortly in PLOS One. The expected citation would be
 
-> Lots of authors, and the CTN-0094 Team. (*In submission*, expected 2024). A really cool title. *PLOS One*.
+> Balise RR, Hu MC, Odom GJ, Calderon A, Luo SX, Feaster DJ, and the CTN-0094 Team. (*In submission*, expected 2024). "The Harmonization of 'High Stakes' Clinical Trial Data: Medication Assisted Treatment for Opioid Use Disorder." *PLOS One*.
 
 To find citation information for this package, call the following code:
 ```r
