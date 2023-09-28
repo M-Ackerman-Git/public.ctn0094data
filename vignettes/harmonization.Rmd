@@ -331,7 +331,7 @@ See the section [all_drugs](#all_drugs) for additional details.
 
 Missed visits in ctn_0027 as missing the appointment dates but they have the visit week.
 
-ctn_0027 and ctn_0030 logged reasons for missed appointments as free text.  ctn_0051 categorized reasons for missing appointments into 10 groups plus an "Other" categorized.  All reasons were harmonized into a set 14 excuse categories.  The free text was scanned for key words/phrases (including frequently occurring misspellings) and these were converted into the indicator variables shown in [Table 6](tab:excuse).
+ctn_0027 and ctn_0030 logged reasons for missed appointments as free text.  ctn_0051 categorized reasons for missing appointments into 10 groups plus an "Other" categorized.  All reasons were harmonized into a set 14 excuse categories.  The free text was scanned for key words/phrases (including frequently occurring misspellings) and these were converted into the indicator variables shown in [Table 6](#tab:excuse).
 
 <p id="tab:excuse", style="color:gray;">
 

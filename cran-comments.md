@@ -1,3 +1,8 @@
+# Resubmission 1
+
+* We fixed one of the Quarto / LaTeX cross references (table 6) that was incorrectly rendering it as a URL.
+
+
 # Initial Submission
 
 * Local R CMD Check yields 0 errors, 0 warnings, 0 notes.
