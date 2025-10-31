@@ -1,3 +1,7 @@
+# 1.1.0
+
+* Added labels to all tibbles
+
 # 1.0.4
 
 * Corrected the description of the fagerstrom table

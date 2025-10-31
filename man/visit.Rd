@@ -120,7 +120,7 @@ A tibble with 53,899 rows and
 \item{\strong{is_illness}}{\tabular{ll}{
    \emph{Type:} \tab factor (First/Reference level = 1) \cr
     \tab  \cr
-   \emph{Description:} \tab Patient reported being to sick to attend \cr
+   \emph{Description:} \tab Patient reported being too sick to attend \cr
     \tab  \cr
    \emph{Levels:} \tab 1 \cr
 }

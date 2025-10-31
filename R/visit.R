@@ -146,7 +146,7 @@
 #' | _Type:_        | factor (First/Reference level = `r levels(visit$is_illness)[1]`)    |
 #' | -------------- | ------------- |
 #' |                |               |
-#' | _Description:_ | Patient reported being to sick to attend |
+#' | _Description:_ | Patient reported being too sick to attend |
 #' |                |               |
 #' | _Levels:_      | `r levels(visit$is_illness)` |
 #'
